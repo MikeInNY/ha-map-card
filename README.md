@@ -55,7 +55,7 @@ y: 3.652
 | `history_date_selection` | false                                                                                                                        | Will link with a `energy-date-selection` on the page to provide an interactive  date range picker. |
 | `theme_mode`          | auto                                  | `auto`, `light` or`dark`                                                                      |
 | `focus_follow`        | none                                  | `none`, `refocus`, `contains`, `refocus_on_move`. The first three modes keep their existing behavior; `refocus_on_move` follows only `focus_entity` (see below). Other follow modes reset the map focused entity's, on each update. Some people call this the `Autofit` feature.                                                              |
-| `maximize` | false | Show a native top-right maximize button. Requires Browser Mod for the popup. Use `true` or the options below. |
+| `controls.maximize` | false | Show a native top-right maximize button. Requires Browser Mod for the popup. Use `true` or the options below. |
 | `focus_follow_threshold` | 25 | Minimum displacement in meters since the last refocus, used only by `refocus_on_move`. Non-negative finite number; `0` follows any coordinate change. Invalid values use 25. |
 | `focus_follow_pause`  | 0                                     | Number of seconds to suspend `focus_follow` after the user pans (mouse down/drag) or zooms the map. `0` disables pausing (default, existing behavior).                                  |
 | `map_options`          | {}                                                                                                                           | The `options` for the default [Leaflet Map](https://leafletjs.com/reference.html#map) |
@@ -483,8 +483,7 @@ We have a gallery of nice examples at [nathan.gs/ha-map-card](https://nathan.gs/
 
 Install [Browser Mod](https://github.com/thomasloven/hass-browser_mod) and reload
 this browser after setup. Add `maximize: true` to the map configuration to show
-a small Leaflet-style maximize button in the upper-right corner. No card-mod or
-button-card is needed. The button is keyboard accessible with Tab and Enter/Space.
+a small Leaflet-style maximize button in the upper-right corner. No card-mod, button-card, layout-card, or other dependency beyond Browser Mod is needed. The button is keyboard accessible with Tab and Enter/Space.
 
 ```yaml
 type: custom:map-card
@@ -492,7 +491,8 @@ focus_entity: person.example
 zoom: 15
 focus_follow: refocus_on_move
 focus_follow_threshold: 25
-maximize: true
+controls:
+  maximize: true
 entities:
   - entity: person.example
     position_update_threshold: 10
@@ -505,13 +505,17 @@ manual pan. The popup copy hides the maximize button to prevent nested popups.
 This is a Browser Mod popup, not the browser's operating-system fullscreen mode.
 If Browser Mod is unavailable, the button shows a setup reminder.
 
+The top-level `maximize: true` setting remains supported. If both forms are set,
+`controls.maximize` takes precedence (including `false`). The options object can
+be used under either setting.
+
 Optional settings:
 
 ```yaml
 maximize:
   enabled: true
   title: Large map
-  popup_style: wide
+  popup_style: fullscreen
   card_size: 12
 ```
 
@@ -519,9 +523,16 @@ maximize:
 | --- | --- | --- |
 | `enabled` | `true` for an options object | Set `false` to hide the button. |
 | `title` | Card title, or `Map` | Popup heading. |
-| `popup_style` | `wide` | Browser Mod `normal`, `wide`, `fullscreen`, or `classic` style. |
+| `popup_style` | `fullscreen` | Browser Mod `normal`, `wide`, `fullscreen`, or `classic` style. |
 | `card_size` | `12` | Positive number of card height units for the popup map. |
 
 The integration uses Browser Mod's local `ll-custom` event and does not send a
 Home Assistant service call to all registered browsers. Both `initial_style`
 and legacy `size` are supplied for Browser Mod compatibility.
+
+
+Fullscreen popups fill the browser viewport. The map fills 100% of the available
+content height below the popup heading, and resizes with the window. No card-mod
+is required. In fullscreen mode the popup uses `fill_height: true`, overriding
+the normal fixed `card_size` height. Explicit `wide`, `normal`, or `classic`
+popups still use `card_size`. Dashboard card sizing stays unchanged.
