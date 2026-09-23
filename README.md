@@ -54,7 +54,8 @@ y: 3.652
 | `tile_layer_options` | {}                                                                                                                               | The `options` for the default [TileLayer](https://leafletjs.com/reference.html#tilelayer) |
 | `history_date_selection` | false                                                                                                                        | Will link with a `energy-date-selection` on the page to provide an interactive  date range picker. |
 | `theme_mode`          | auto                                  | `auto`, `light` or`dark`                                                                      |
-| `focus_follow`        | none                                  | `none`, `refocus`, `contains`, reset the map focused entity's, on each update. Some people call this the `Autofit` feature.                                                              |
+| `focus_follow`        | none                                  | `none`, `refocus`, `contains`, `refocus_on_move`. The first three modes keep their existing behavior; `refocus_on_move` follows only `focus_entity` (see below). Other follow modes reset the map focused entity's, on each update. Some people call this the `Autofit` feature.                                                              |
+| `focus_follow_threshold` | 25 | Minimum displacement in meters since the last refocus, used only by `refocus_on_move`. Non-negative finite number; `0` follows any coordinate change. Invalid values use 25. |
 | `focus_follow_pause`  | 0                                     | Number of seconds to suspend `focus_follow` after the user pans (mouse down/drag) or zooms the map. `0` disables pausing (default, existing behavior).                                  |
 | `map_options`          | {}                                                                                                                           | The `options` for the default [Leaflet Map](https://leafletjs.com/reference.html#map) |
 | `cluster_markers`      | false                                                                                                                        | Enable marker clustering to group nearby entities together. Click the group icon button to toggle clustering on/off. |
@@ -80,6 +81,42 @@ entities:
 
 
 If `x` & `y` or `focus_entity` is not set it will take the lat/long from the __first entity__.
+
+### Refocus only when the focused entity moves
+
+```yaml
+type: custom:map-card
+focus_entity: person.example
+zoom: 15
+focus_follow: refocus_on_move
+focus_follow_threshold: 25
+focus_follow_pause: 0
+entities:
+  - entity: person.example
+    display: marker
+    size: 64
+    position_update_threshold: 10
+```
+
+`refocus_on_move` requires `focus_entity`. On initial load it centers on that
+entity at `zoom`, taking precedence over `x`/`y`. After you pan or zoom, ordinary
+updates leave the view alone. The next position at least `focus_follow_threshold`
+meters from the last refocused position recenters the map at the configured zoom.
+Small steps count toward displacement from that position, not total distance
+traveled. Unchanged coordinates never trigger a refocus, even at threshold `0`.
+
+The mode reads live latitude/longitude (or an available device tracker when the
+focused entity lacks coordinates), independently of marker visibility,
+`focus_on_fit`, history, and `position_update_threshold`. Missing or invalid
+coordinates leave the view and baseline unchanged; tracking resumes when valid
+coordinates return. Distances are geographic meters, not floor-plan units.
+
+With `focus_follow_pause` greater than zero, movement during user interaction is
+checked when the pause expires: recentering occurs only if the current position
+meets the threshold. The **Reset focus** button immediately recenters and starts
+a new baseline. Reloading or reconfiguring the card also starts a new baseline.
+To lock zoom, optionally set both `map_options.minZoom` and `map_options.maxZoom`
+to the desired zoom.
 
 ### URL Entity lookup
 
