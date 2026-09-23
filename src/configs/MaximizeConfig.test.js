@@ -5,7 +5,7 @@ describe('MaximizeConfig', () => {
   it('is optional and supplies popup defaults', () => {
     expect(new MaximizeConfig().enabled).toBeFalsy();
     expect(new MaximizeConfig(false).enabled).toBeFalsy();
-    expect(new MaximizeConfig(true, 'Tracking')).toMatchObject({ enabled: true, title: 'Tracking', popupStyle: 'wide', cardSize: 12 });
+    expect(new MaximizeConfig(true, 'Tracking')).toMatchObject({ enabled: true, title: 'Tracking', popupStyle: 'fullscreen', cardSize: 12 });
   });
   it('allows custom settings and disabling an object configuration', () => {
     expect(new MaximizeConfig({ title: 'Example', popup_style: 'fullscreen', card_size: 15 })).toMatchObject({ enabled: true, title: 'Example', popupStyle: 'fullscreen', cardSize: 15 });

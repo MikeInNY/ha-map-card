@@ -54,3 +54,20 @@ describe('movement-follow configuration', () => {
     expect(config.focusFollow.pauseMilliseconds).toBe(3000);
   });
 });
+
+describe('maximize control configuration', () => {
+  const config = options => new MapConfig({ x: 0, y: 0, ...options });
+  it('accepts the controls setting and keeps the top-level setting compatible', () => {
+    expect(config({ controls: { maximize: true } }).maximize.enabled).toBe(true);
+    expect(config({ maximize: true }).maximize.enabled).toBe(true);
+    expect(config({}).maximize.enabled).toBe(false);
+  });
+  it('gives the controls setting precedence, including an explicit false', () => {
+    expect(config({ maximize: true, controls: { maximize: false } }).maximize.enabled).toBe(false);
+    expect(config({ maximize: false, controls: { maximize: true } }).maximize.enabled).toBe(true);
+  });
+  it('supports popup options under controls', () => {
+    expect(config({ controls: { maximize: { popup_style: 'fullscreen', card_size: 15 } } }).maximize)
+      .toMatchObject({ enabled: true, popupStyle: 'fullscreen', cardSize: 15 });
+  });
+});

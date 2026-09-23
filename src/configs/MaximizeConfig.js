@@ -3,7 +3,7 @@ export default class MaximizeConfig {
     const options = config && typeof config === 'object' ? config : {};
     this.enabled = config === true || (!!config && typeof config === 'object' && options.enabled !== false);
     this.title = options.title ?? title ?? 'Map';
-    this.popupStyle = options.popup_style ?? 'wide';
+    this.popupStyle = options.popup_style ?? 'fullscreen';
     this.cardSize = options.card_size ?? 12;
     if (!['normal', 'wide', 'fullscreen', 'classic'].includes(this.popupStyle)) {
       throw new Error('maximize.popup_style must be normal, wide, fullscreen, or classic');
