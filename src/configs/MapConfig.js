@@ -6,6 +6,7 @@ import WmsLayerConfig from "./WmsLayerConfig.js";
 import GeoJsonLayerConfig from "./GeoJsonLayerConfig.js";
 import Logger from "../util/Logger.js";
 import Entity from "../models/Entity.js";
+import MaximizeConfig from "./MaximizeConfig.js";
 import FocusFollowConfig from "./FocusFollowConfig.js";
 
 
@@ -53,6 +54,7 @@ export default class MapConfig {
 
   constructor(inputConfig) {
     this.title = inputConfig.title;
+    this.maximize = new MaximizeConfig(inputConfig.maximize, inputConfig.title);
     this.focusEntity = inputConfig.focus_entity;
     this.focusFollow = new FocusFollowConfig(inputConfig.focus_follow, inputConfig.focus_follow_pause, inputConfig.focus_follow_threshold);
     if (this.focusFollow.isRefocusOnMove && !this.focusEntity) {
