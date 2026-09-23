@@ -47,6 +47,10 @@ export default class InitialViewRenderService {
   }
 
   _applyInitialView() {
+    if (this.config.focusFollow?.isRefocusOnMove) {
+      this.entitiesRenderService.refocusOnMove(true);
+      return;
+    }
     const latLng = this.getConfiguredLatLong(this.config, this.hass);
     
     if (latLng) {

@@ -1,4 +1,4 @@
-import L, {Map, LayerGroup, LatLngBounds} from "leaflet";
+import L, {Map, LatLngBounds} from "leaflet";
 import "leaflet.markercluster";
 import EntityConfig from "../../configs/EntityConfig";
 import Entity from "../../models/Entity";
@@ -41,7 +41,11 @@ export default class EntitiesRenderService {
   /** @type {boolean} */
   _isAutoFitting = false;
 
-  constructor(map, hass, focusFollowConfig, entityConfigs, linkedEntityService, dateRangeManager, historyService, isDarkMode, clusterMarkers = true) {
+  _lastFocusedPosition = null;
+  _focusViewReady = false;
+
+  constructor(map, hass, focusFollowConfig, entityConfigs, linkedEntityService, dateRangeManager, historyService, isDarkMode, clusterMarkers = true, viewConfig = {}) {
+    this.viewConfig = viewConfig;
     this.map = map;
     this.hass = hass;
     this.focusFollowConfig = focusFollowConfig;
@@ -187,11 +191,50 @@ export default class EntitiesRenderService {
     }
   }
 
+  refocusOnMove(force = false) {
+    if (force) {
+      this._focusViewReady = true;
+    }
+    if (!this._focusViewReady || (!force && this.isFollowPaused)) {
+      return;
+    }
+    const states = this.hass?.states ?? {};
+    const entity = states[this.viewConfig.focusEntity];
+    const candidates = [entity, ...(entity?.attributes?.device_trackers ?? []).map(id => states[id])];
+    const attributes = candidates.map(candidate => candidate?.attributes).find(attrs =>
+      Number.isFinite(attrs?.latitude) && Number.isFinite(attrs?.longitude) &&
+      Math.abs(attrs.latitude) <= 90 && Math.abs(attrs.longitude) <= 180);
+    if (!attributes) {
+      return;
+    }
+    // Read live coordinates, independently of marker position filtering or history.
+    const position = L.latLng(attributes.latitude, attributes.longitude);
+    if (!force && this._lastFocusedPosition) {
+      const distance = this._lastFocusedPosition.distanceTo(position);
+      if (distance === 0 || distance < this.focusFollowConfig.thresholdMeters) {
+        return;
+      }
+    }
+    // A synchronous view change keeps our zoom events out of the pause timer,
+    // including the no-op case where Leaflet does not emit moveend.
+    this._isAutoFitting = true;
+    try {
+      this.map.setView(position, this.viewConfig.zoom, { animate: false });
+      this._lastFocusedPosition = position;
+    } finally {
+      this._isAutoFitting = false;
+    }
+  }
+
   updateInitialView() {
     if(this.focusFollowConfig.isNone) {
       return;
     }
     if(this.isFollowPaused) {
+      return;
+    }
+    if (this.focusFollowConfig.isRefocusOnMove) {
+      this.refocusOnMove();
       return;
     }
     const points = this.entities.filter(e => e.config.focusOnFit).map((e) => e.latLng);
