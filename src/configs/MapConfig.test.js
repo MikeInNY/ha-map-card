@@ -41,3 +41,16 @@ describe("MapConfig", () => {
 
   });
 });
+
+describe('movement-follow configuration', () => {
+  it('requires an explicit focus entity', () => {
+    expect(() => new MapConfig({ x: 1, y: 1, focus_follow: 'refocus_on_move' }))
+      .toThrow('focus_follow: refocus_on_move requires focus_entity');
+  });
+  it('passes the threshold and pause to the follow config', () => {
+    const config = new MapConfig({ focus_entity: 'person.example', focus_follow: 'refocus_on_move',
+      focus_follow_threshold: 42, focus_follow_pause: 3 });
+    expect(config.focusFollow.thresholdMeters).toBe(42);
+    expect(config.focusFollow.pauseMilliseconds).toBe(3000);
+  });
+});

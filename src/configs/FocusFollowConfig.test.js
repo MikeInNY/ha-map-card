@@ -97,3 +97,17 @@ describe('FocusFollowConfig', () => {
     });
   });
 });
+describe('movement threshold', () => {
+  it.each([undefined, null, '', 'invalid', -1, Infinity, NaN])('defaults invalid or absent threshold %s to 25 meters', value => {
+    expect(new FocusFollowConfig('refocus_on_move', 0, value).thresholdMeters).toBe(25);
+  });
+  it.each([0, 25, 12.5, '50'])('accepts threshold %s', value => {
+    const config = new FocusFollowConfig('refocus_on_move', 5, value);
+    expect(config.thresholdMeters).toBe(Number(value));
+    expect(config.isRefocusOnMove).toBe(true);
+    expect(config.isRefocus).toBe(false);
+    expect(config.isContains).toBe(false);
+    expect(config.isNone).toBe(false);
+    expect(config.pauseMilliseconds).toBe(5000);
+  });
+});

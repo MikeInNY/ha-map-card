@@ -54,7 +54,10 @@ export default class MapConfig {
   constructor(inputConfig) {
     this.title = inputConfig.title;
     this.focusEntity = inputConfig.focus_entity;
-    this.focusFollow = new FocusFollowConfig(inputConfig.focus_follow, inputConfig.focus_follow_pause);
+    this.focusFollow = new FocusFollowConfig(inputConfig.focus_follow, inputConfig.focus_follow_pause, inputConfig.focus_follow_threshold);
+    if (this.focusFollow.isRefocusOnMove && !this.focusEntity) {
+      throw new Error("focus_follow: refocus_on_move requires focus_entity");
+    }
     this.x = inputConfig.x;
     this.y = inputConfig.y;
     this.zoom = this._setConfigWithDefault(inputConfig.zoom, 12);
