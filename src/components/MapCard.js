@@ -1,3 +1,5 @@
+import MaximizeControl from "../leaflet/MaximizeControl.js";
+import { openMapPopup } from "../util/MapPopup.js";
 
 import L from 'leaflet';
 import { LitElement, html, css } from "lit";
@@ -205,6 +207,9 @@ export default class MapCard extends LitElement {
       let layer = new TileLayer(tileUrl, this._config.tileLayer.options);
       map.addLayer(layer);
       this.urlResolver.registerLayer(layer, this._config.tileLayer.url);
+    }
+    if (this._config.maximize.enabled) {
+      new MaximizeControl(() => openMapPopup(this, this.config, this._config.maximize)).addTo(map);
     }
     return map;
   }
