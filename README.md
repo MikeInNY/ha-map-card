@@ -55,6 +55,7 @@ y: 3.652
 | `history_date_selection` | false                                                                                                                        | Will link with a `energy-date-selection` on the page to provide an interactive  date range picker. |
 | `theme_mode`          | auto                                  | `auto`, `light` or`dark`                                                                      |
 | `focus_follow`        | none                                  | `none`, `refocus`, `contains`, `refocus_on_move`. The first three modes keep their existing behavior; `refocus_on_move` follows only `focus_entity` (see below). Other follow modes reset the map focused entity's, on each update. Some people call this the `Autofit` feature.                                                              |
+| `maximize` | false | Show a native top-right maximize button. Requires Browser Mod for the popup. Use `true` or the options below. |
 | `focus_follow_threshold` | 25 | Minimum displacement in meters since the last refocus, used only by `refocus_on_move`. Non-negative finite number; `0` follows any coordinate change. Invalid values use 25. |
 | `focus_follow_pause`  | 0                                     | Number of seconds to suspend `focus_follow` after the user pans (mouse down/drag) or zooms the map. `0` disables pausing (default, existing behavior).                                  |
 | `map_options`          | {}                                                                                                                           | The `options` for the default [Leaflet Map](https://leafletjs.com/reference.html#map) |
@@ -477,3 +478,50 @@ Tag your Github repo with [ha-map-card-plugin](https://github.com/topics/ha-map-
 ### Showcase
 
 We have a gallery of nice examples at [nathan.gs/ha-map-card](https://nathan.gs/ha-map-card/), contributions are welcome, check the [showcase/README.md](showcase/README.md).
+
+### Maximize map with Browser Mod
+
+Install [Browser Mod](https://github.com/thomasloven/hass-browser_mod) and reload
+this browser after setup. Add `maximize: true` to the map configuration to show
+a small Leaflet-style maximize button in the upper-right corner. No card-mod or
+button-card is needed. The button is keyboard accessible with Tab and Enter/Space.
+
+```yaml
+type: custom:map-card
+focus_entity: person.example
+zoom: 15
+focus_follow: refocus_on_move
+focus_follow_threshold: 25
+maximize: true
+entities:
+  - entity: person.example
+    position_update_threshold: 10
+```
+
+Clicking the button opens a larger copy of the same card in the **current browser
+only**. The popup retains entity, history, layers, zoom, and follow settings. Its
+view is independent: opening/closing it does not reset the original map after a
+manual pan. The popup copy hides the maximize button to prevent nested popups.
+This is a Browser Mod popup, not the browser's operating-system fullscreen mode.
+If Browser Mod is unavailable, the button shows a setup reminder.
+
+Optional settings:
+
+```yaml
+maximize:
+  enabled: true
+  title: Large map
+  popup_style: wide
+  card_size: 12
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `enabled` | `true` for an options object | Set `false` to hide the button. |
+| `title` | Card title, or `Map` | Popup heading. |
+| `popup_style` | `wide` | Browser Mod `normal`, `wide`, `fullscreen`, or `classic` style. |
+| `card_size` | `12` | Positive number of card height units for the popup map. |
+
+The integration uses Browser Mod's local `ll-custom` event and does not send a
+Home Assistant service call to all registered browsers. Both `initial_style`
+and legacy `size` are supplied for Browser Mod compatibility.
