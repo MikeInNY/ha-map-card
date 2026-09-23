@@ -20,6 +20,7 @@ import GeoJsonRenderService from '../services/render/GeoJsonRenderService.js';
 export default class MapCard extends LitElement {
   static get properties() {
     return {
+      fillHeight: { type: Boolean, reflect: true, attribute: 'fill-height' },
       hass: {},
       config: {}
     };
@@ -131,8 +132,8 @@ export default class MapCard extends LitElement {
             <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
             <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
             <ha-card header="${this._config.title}">
-              <div id="mapContainer" style="min-height: ${this._config.mapHeight}px">
-                <div id="map" style="min-height: ${this._config.mapHeight}px">
+              <div id="mapContainer" style="min-height: ${this._config.fillHeight ? 0 : this._config.mapHeight}px">
+                <div id="map" style="min-height: ${this._config.fillHeight ? 0 : this._config.mapHeight}px">
                   <ha-icon-button
                     label='Reset focus'
                     style='${this._isDarkMode() ? "color:#ffffff;" : "color:#000000;"} position: absolute; top: ${this._hasZoomControl() ? 75 : 11}px; left: 3px; z-index: 1;'
@@ -219,6 +220,7 @@ export default class MapCard extends LitElement {
   setConfig(config) {
     this.config = config;
     this._config = new MapConfig(config);
+    this.fillHeight = this._config.fillHeight;
     this.setupNeeded = true;
   }
 
@@ -284,6 +286,33 @@ export default class MapCard extends LitElement {
 
   static get styles() {
     return css`
+      :host([fill-height]) { display: block; height: 100%; min-height: 0; }
+      :host([fill-height]) ha-card,
+      :host([fill-height]) #mapContainer { border-radius: 0; min-height: 0; }
+
+      .map-card-maximize button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        border: 0;
+        border-radius: 2px;
+        background: #fff;
+        color: #000;
+        cursor: pointer;
+      }
+      .leaflet-touch .map-card-maximize button { width: 30px; height: 30px; }
+      .map-card-maximize button:hover { background: #f4f4f4; }
+      .map-card-maximize button:focus-visible {
+        outline: 2px solid var(--primary-color, #03a9f4);
+        outline-offset: 2px;
+      }
+      .dark .map-card-maximize button { background: #333; color: #fff; }
+      .dark .map-card-maximize button:hover { background: #444; }
+
       ha-card {
         height: 100%;
         display: flex;
