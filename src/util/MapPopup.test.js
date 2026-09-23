@@ -25,8 +25,8 @@ describe('map popup', () => {
     const action = event.detail.browser_mod;
     expect(action.service).toBe('browser_mod.popup');
     expect(action.data.browser_id).toBeUndefined();
-    expect(action.data).toMatchObject({ title: 'Example', initial_style: 'wide', size: 'wide' });
-    expect(action.data.content).toEqual({ ...config, type: 'custom:map-card', title: undefined, grid_options: undefined, maximize: false, card_size: 12 });
+    expect(action.data).toMatchObject({ title: 'Example', initial_style: 'fullscreen', size: 'fullscreen' });
+    expect(action.data.content).toEqual({ ...config, type: 'custom:map-card', title: undefined, grid_options: undefined, maximize: false, card_size: 12, fill_height: true });
     action.data.content.entities[0].entity = 'person.other';
     expect(JSON.stringify(config)).toBe(original);
   });
@@ -37,5 +37,30 @@ describe('map popup', () => {
     expect(card.dispatchEvent).not.toHaveBeenCalled();
     openMapPopup(card, {}, new MaximizeConfig(true));
     expect(card.dispatchEvent.mock.calls[0][0].type).toBe('hass-notification');
+  });
+
+  it('disables both maximize forms in the popup without changing other controls', () => {
+    window.browser_mod = {};
+    const card = { dispatchEvent: jest.fn() };
+    const config = { controls: { maximize: { enabled: true }, other: true }, maximize: true };
+    openMapPopup(card, config, new MaximizeConfig(true));
+    const content = card.dispatchEvent.mock.calls[0][0].detail.browser_mod.data.content;
+    expect(content.controls).toEqual({ maximize: false, other: true });
+    expect(content.maximize).toBe(false);
+    expect(config.controls.maximize).toEqual({ enabled: true });
+  });
+
+  it('fills the fullscreen popup but keeps explicit smaller popup sizing', () => {
+    window.browser_mod = {};
+    const card = { dispatchEvent: jest.fn() };
+    openMapPopup(card, {}, new MaximizeConfig(true));
+    let data = card.dispatchEvent.mock.calls[0][0].detail.browser_mod.data;
+    expect(data.content.fill_height).toBe(true);
+    expect(data.style).toContain('100dvh');
+    openMapPopup(card, {}, new MaximizeConfig({ popup_style: 'wide', card_size: 8 }));
+    data = card.dispatchEvent.mock.calls[1][0].detail.browser_mod.data;
+    expect(data.content.fill_height).toBe(false);
+    expect(data.content.card_size).toBe(8);
+    expect(data.style).toBeUndefined();
   });
 });
